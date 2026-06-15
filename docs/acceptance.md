@@ -13,6 +13,8 @@ Use this checklist to verify the current `workpanel` prototype against the goal 
 - Checking or unchecking acceptance gates changes acceptance percentage and merge readiness.
 - Merge train entries select the corresponding issue.
 - Batch review accepts pending ADRs only when the issue has enough acceptance evidence.
+- Issue data is sourced from `workpanel/issues.json` and mirrored to `workpanel/issues-data.js`.
+- `validate_state.py` accepts the current `workpanel/issues.json`.
 
 ## Decision quality checks
 
@@ -30,6 +32,6 @@ Use this checklist to verify the current `workpanel` prototype against the goal 
 
 ## Current known limits
 
-- State is in-memory only and resets on refresh.
-- Example issues are local fixtures in `app.js`.
+- Runtime changes are in-memory only and reset on refresh.
+- Agents should edit `workpanel/issues.json`; `workpanel/issues-data.js` must be regenerated for static browser use.
 - No real agent, git, CI or issue tracker integration is connected yet.

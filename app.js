@@ -1,244 +1,18 @@
 const stages = ["Intake", "ADR", "Patch", "Checks", "Review", "Merge"];
 
-const issues = [
-  {
-    id: "PAY-1842",
-    title: "Checkout total drifts after coupon rollback",
-    product: "billing-web",
-    severity: "high",
-    risk: "high",
-    stage: "Review",
-    agent: "codex-a17",
-    branch: "fix/pay-1842-coupon-total",
-    owner: "Mina",
-    eta: "35m",
-    merge: "wait",
-    decisions: [
-      {
-        id: "adr-1842-1",
-        title: "Move coupon rollback into pricing reducer",
-        context: "State mutation happens in both cart and payment views.",
-        decision: "Normalize rollback in the reducer and keep UI as a pure renderer.",
-        consequence: "Lower UI drift, requires reducer regression coverage.",
-        status: "accepted"
-      },
-      {
-        id: "adr-1842-2",
-        title: "Reject view-level patch",
-        context: "A view-only fix hides drift in one checkout route.",
-        decision: "Do not patch the component total calculation.",
-        consequence: "Slightly larger diff, better cross-route behavior.",
-        status: "pending"
-      }
-    ],
-    acceptance: [
-      { label: "Unit tests cover coupon add, remove, rollback", done: true },
-      { label: "E2E verifies checkout and confirmation totals", done: true },
-      { label: "Diff contains no payment gateway contract change", done: false },
-      { label: "Reviewer confirms ADR-1842-2", done: false }
-    ],
-    signals: {
-      tests: "34/35",
-      diff: "+86 -41",
-      review: "1 wait",
-      rollback: "low"
-    }
-  },
-  {
-    id: "AUTH-339",
-    title: "Session refresh loop on expired SSO token",
-    product: "identity",
-    severity: "medium",
-    risk: "medium",
-    stage: "Checks",
-    agent: "claude-b03",
-    branch: "fix/auth-339-refresh-loop",
-    owner: "Jun",
-    eta: "50m",
-    merge: "hold",
-    decisions: [
-      {
-        id: "adr-339-1",
-        title: "Single-flight refresh guard",
-        context: "Multiple tabs call refresh after the same token expiry.",
-        decision: "Gate refresh with a single-flight promise keyed by tenant.",
-        consequence: "Prevents retry storms, needs tenant isolation tests.",
-        status: "needs-revision"
-      },
-      {
-        id: "adr-339-2",
-        title: "No silent logout on first refresh failure",
-        context: "Network jitter currently pushes users to login.",
-        decision: "Retry once with jitter and then show re-auth state.",
-        consequence: "Better UX, one extra auth branch.",
-        status: "pending"
-      }
-    ],
-    acceptance: [
-      { label: "Tenant isolation unit tests pass", done: false },
-      { label: "Browser multi-tab regression passes", done: false },
-      { label: "Auth telemetry does not log raw token data", done: true },
-      { label: "Security reviewer signs off", done: false }
-    ],
-    signals: {
-      tests: "21/29",
-      diff: "+144 -66",
-      review: "blocked",
-      rollback: "medium"
-    }
-  },
-  {
-    id: "OPS-771",
-    title: "Incident banner stays visible after resolution",
-    product: "status-admin",
-    severity: "low",
-    risk: "low",
-    stage: "Merge",
-    agent: "cursor-c21",
-    branch: "fix/ops-771-banner-cache",
-    owner: "Ari",
-    eta: "ready",
-    merge: "pass",
-    decisions: [
-      {
-        id: "adr-771-1",
-        title: "Invalidate cache from incident state transition",
-        context: "Banner cache is refreshed by polling only.",
-        decision: "Emit invalidation when incidents move to resolved.",
-        consequence: "Faster UI consistency, one new event path.",
-        status: "accepted"
-      }
-    ],
-    acceptance: [
-      { label: "State transition test covers resolved incidents", done: true },
-      { label: "Manual screenshot captured for active and resolved states", done: true },
-      { label: "No cache key change for public status pages", done: true },
-      { label: "Merge conflict check is clean", done: true }
-    ],
-    signals: {
-      tests: "18/18",
-      diff: "+42 -12",
-      review: "approved",
-      rollback: "low"
-    }
-  },
-  {
-    id: "CRM-512",
-    title: "Bulk import accepts duplicate external ids",
-    product: "crm-api",
-    severity: "high",
-    risk: "high",
-    stage: "ADR",
-    agent: "opencode-d09",
-    branch: "fix/crm-512-import-dedupe",
-    owner: "Nora",
-    eta: "90m",
-    merge: "hold",
-    decisions: [
-      {
-        id: "adr-512-1",
-        title: "Reject duplicates before persistence",
-        context: "Current import dedupe happens after partial writes.",
-        decision: "Validate external ids in a preflight import plan.",
-        consequence: "No partial duplicate writes, higher memory use for large files.",
-        status: "pending"
-      },
-      {
-        id: "adr-512-2",
-        title: "Keep existing upsert semantics",
-        context: "Customers depend on update by external id.",
-        decision: "Only reject duplicates inside the same uploaded file.",
-        consequence: "Avoids breaking integrations, needs fixture coverage.",
-        status: "pending"
-      }
-    ],
-    acceptance: [
-      { label: "Fixture with duplicate rows fails before write", done: false },
-      { label: "Existing upsert integration remains green", done: true },
-      { label: "Import error includes row-level evidence", done: false },
-      { label: "Migration impact documented", done: false }
-    ],
-    signals: {
-      tests: "12/24",
-      diff: "+201 -38",
-      review: "not started",
-      rollback: "high"
-    }
-  },
-  {
-    id: "UI-908",
-    title: "Kanban swimlane count is stale after drag",
-    product: "project-ui",
-    severity: "medium",
-    risk: "medium",
-    stage: "Patch",
-    agent: "pi-e14",
-    branch: "fix/ui-908-swimlane-count",
-    owner: "Tao",
-    eta: "25m",
-    merge: "wait",
-    decisions: [
-      {
-        id: "adr-908-1",
-        title: "Recompute lane counts from normalized board state",
-        context: "Drag operations update cards before lane counters.",
-        decision: "Derive counts from normalized state selectors.",
-        consequence: "Removes manual counter sync, changes selector cache boundary.",
-        status: "accepted"
-      }
-    ],
-    acceptance: [
-      { label: "Drag between lanes updates both counts", done: true },
-      { label: "Undo drag restores source and target counts", done: false },
-      { label: "Selector memoization benchmark remains stable", done: false },
-      { label: "Visual regression is reviewed", done: false }
-    ],
-    signals: {
-      tests: "9/14",
-      diff: "+73 -58",
-      review: "queued",
-      rollback: "low"
-    }
-  },
-  {
-    id: "DATA-267",
-    title: "Report export drops timezone on scheduled jobs",
-    product: "analytics",
-    severity: "medium",
-    risk: "low",
-    stage: "Merge",
-    agent: "codex-a22",
-    branch: "fix/data-267-export-timezone",
-    owner: "Ivy",
-    eta: "ready",
-    merge: "pass",
-    decisions: [
-      {
-        id: "adr-267-1",
-        title: "Store schedule timezone with export manifest",
-        context: "Job execution stores UTC time but not the user's timezone.",
-        decision: "Persist timezone in the export manifest and hydrate CSV metadata.",
-        consequence: "Stable scheduled exports, backward-compatible manifest parser.",
-        status: "accepted"
-      }
-    ],
-    acceptance: [
-      { label: "Backfill path supports old manifests", done: true },
-      { label: "CSV metadata includes original timezone", done: true },
-      { label: "Scheduler regression passes for DST boundary", done: true },
-      { label: "Customer support note is attached", done: true }
-    ],
-    signals: {
-      tests: "27/27",
-      diff: "+64 -20",
-      review: "approved",
-      rollback: "low"
-    }
-  }
-];
+const panelIssues = Array.isArray(globalThis.WORKPANEL_ISSUES)
+  ? globalThis.WORKPANEL_ISSUES
+  : [];
+
+const issues = panelIssues.map((issue) => ({
+  ...issue,
+  decisions: Array.isArray(issue.decisions) ? issue.decisions : [],
+  acceptance: Array.isArray(issue.acceptance) ? issue.acceptance : [],
+  signals: issue.signals ?? {}
+}));
 
 const state = {
-  selectedId: issues[0].id,
+  selectedId: issues[0]?.id ?? "",
   filter: "all",
   sort: "risk",
   paused: false
@@ -272,28 +46,30 @@ const elements = {
 };
 
 function selectedIssue() {
-  return issues.find((issue) => issue.id === state.selectedId) ?? issues[0];
+  return issues.find((issue) => issue.id === state.selectedId) ?? issues[0] ?? null;
 }
 
 function issueAcceptance(issue) {
-  const total = issue.acceptance.length;
+  const total = issue?.acceptance.length ?? 0;
+  if (total === 0) return 0;
   const done = issue.acceptance.filter((item) => item.done).length;
   return Math.round((done / total) * 100);
 }
 
 function issueDecisionState(issue) {
-  if (issue.decisions.some((decision) => decision.status === "needs-revision")) {
+  const decisions = issue?.decisions ?? [];
+  if (decisions.some((decision) => decision.status === "needs-revision")) {
     return "needs-revision";
   }
-  if (issue.decisions.some((decision) => decision.status === "pending")) {
+  if (decisions.some((decision) => decision.status === "pending")) {
     return "pending";
   }
   return "accepted";
 }
 
 function issueMergeStatus(issue) {
-  if (issue.merge === "pass") return "ready";
-  if (issue.merge === "hold") return "hold";
+  if (issue?.merge === "pass") return "ready";
+  if (issue?.merge === "hold") return "hold";
   return "wait";
 }
 
@@ -324,7 +100,7 @@ function renderMetrics() {
     .filter((decision) => decision.status !== "accepted").length;
   const acceptanceItems = issues.flatMap((issue) => issue.acceptance);
   const acceptedItems = acceptanceItems.filter((item) => item.done).length;
-  const acceptance = Math.round((acceptedItems / acceptanceItems.length) * 100);
+  const acceptance = acceptanceItems.length === 0 ? 0 : Math.round((acceptedItems / acceptanceItems.length) * 100);
   const mergeReady = issues.filter((issue) => issueMergeStatus(issue) === "ready").length;
 
   elements.metricIssues.textContent = String(issues.length);
@@ -372,6 +148,21 @@ function renderIssueList() {
 
 function renderDetail() {
   const issue = selectedIssue();
+  if (!issue) {
+    elements.selectedTitle.textContent = "No issues";
+    elements.selectedSubtitle.textContent = "Sync workpanel/issues.json";
+    elements.detailOwner.textContent = "No issue selected";
+    elements.detailRisk.textContent = "-";
+    elements.detailRisk.className = "status-token";
+    elements.stagePills.replaceChildren();
+    elements.decisionList.replaceChildren();
+    elements.acceptanceList.replaceChildren();
+    elements.mergeContract.replaceChildren();
+    elements.signalStrip.replaceChildren();
+    elements.resolutionMap.replaceChildren();
+    return;
+  }
+
   elements.selectedTitle.textContent = `${issue.id} ${issue.title}`;
   elements.selectedSubtitle.textContent = `${issue.product} / ${issue.branch}`;
   elements.detailOwner.textContent = `${issue.owner} / ${issue.agent}`;
@@ -570,6 +361,7 @@ function wireEvents() {
     const button = event.target.closest("[data-decision-action]");
     if (!button) return;
     const issue = selectedIssue();
+    if (!issue) return;
     const decision = issue.decisions.find((item) => item.id === button.dataset.decisionId);
     if (!decision) return;
     decision.status = button.dataset.decisionAction;
@@ -581,6 +373,7 @@ function wireEvents() {
     const input = event.target.closest("[data-acceptance-index]");
     if (!input) return;
     const issue = selectedIssue();
+    if (!issue) return;
     issue.acceptance[Number(input.dataset.acceptanceIndex)].done = input.checked;
     issue.merge = issueDecisionState(issue) === "accepted" && issueAcceptance(issue) === 100 ? "pass" : "wait";
     render();

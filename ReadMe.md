@@ -12,12 +12,23 @@
 
 这是一个无依赖静态项目，直接用浏览器打开 [index.html](/home/sanstoolow/issuecompl/index.html) 即可。
 
+Issue 状态的源文件是 [workpanel/issues.json](/home/sanstoolow/issuecompl/workpanel/issues.json)。修改状态后运行：
+
+```bash
+python3 skills/workpanel-orchestrator/scripts/validate_state.py workpanel/issues.json
+python3 skills/workpanel-orchestrator/scripts/sync_panel_data.py workpanel/issues.json --out workpanel/issues-data.js
+```
+
 ## 文件
 
 - [index.html](/home/sanstoolow/issuecompl/index.html)：应用结构。
 - [styles.css](/home/sanstoolow/issuecompl/styles.css)：可视化和响应式布局。
-- [app.js](/home/sanstoolow/issuecompl/app.js)：示例数据、筛选、选择、ADR 状态和验收状态交互。
+- [app.js](/home/sanstoolow/issuecompl/app.js)：筛选、选择、ADR 状态和验收状态交互。
+- [workpanel/issues.json](/home/sanstoolow/issuecompl/workpanel/issues.json)：agent 可修改的 issue/ADR/acceptance 源状态。
+- [workpanel/issues-data.js](/home/sanstoolow/issuecompl/workpanel/issues-data.js)：由源状态生成的静态页面数据镜像。
+- [skills/workpanel-orchestrator/SKILL.md](/home/sanstoolow/issuecompl/skills/workpanel-orchestrator/SKILL.md)：coding agent 使用的 workpanel 编排协议。
 - [docs/adr/0001-workpanel-decision-acceptance.md](/home/sanstoolow/issuecompl/docs/adr/0001-workpanel-decision-acceptance.md)：项目级 ADR。
+- [docs/adr/0002-workpanel-state-source.md](/home/sanstoolow/issuecompl/docs/adr/0002-workpanel-state-source.md)：状态源和静态数据镜像 ADR。
 - [docs/acceptance.md](/home/sanstoolow/issuecompl/docs/acceptance.md)：验收清单。
 
 ## 验收重点
