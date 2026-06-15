@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>workpanel</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div class="brand-block">
+          <span class="brand-mark" aria-hidden="true">WP</span>
+          <div>
+            <h1>workpanel</h1>
+            <p>Issue resolution control room</p>
+          </div>
+        </div>
+        <section class="metrics" aria-label="run metrics">
+          <div class="metric">
+            <span class="metric-value" id="metricIssues">0</span>
+            <span class="metric-label">Issues</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value" id="metricAgents">0</span>
+            <span class="metric-label">Agents</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value" id="metricDecisions">0</span>
+            <span class="metric-label">ADR Pending</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value" id="metricAcceptance">0%</span>
+            <span class="metric-label">Acceptance</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value" id="metricMergeReady">0</span>
+            <span class="metric-label">Merge Ready</span>
+          </div>
+        </section>
+        <div class="top-actions" aria-label="run actions">
+          <button class="icon-button" id="pauseRun" type="button" title="Pause run" aria-label="Pause run">||</button>
+          <button class="command-button" id="batchReview" type="button">Batch Review</button>
+        </div>
+      </header>
+
+      <section class="workspace">
+        <aside class="queue-panel framed-tool" aria-label="issue queue">
+          <div class="panel-heading">
+            <div>
+              <h2>Issue Queue</h2>
+              <span id="queueCount">0 visible</span>
+            </div>
+            <select id="sortMode" aria-label="Sort issues">
+              <option value="risk">Risk</option>
+              <option value="stage">Stage</option>
+              <option value="eta">ETA</option>
+            </select>
+          </div>
+          <div class="segmented-control" role="tablist" aria-label="Issue filters">
+            <button class="segment is-active" data-filter="all" type="button">All</button>
+            <button class="segment" data-filter="decision" type="button">ADR</button>
+            <button class="segment" data-filter="blocked" type="button">Blocked</button>
+            <button class="segment" data-filter="ready" type="button">Ready</button>
+          </div>
+          <div class="issue-list" id="issueList"></div>
+        </aside>
+
+        <section class="map-panel framed-tool" aria-label="decision and acceptance map">
+          <div class="panel-heading map-heading">
+            <div>
+              <h2 id="selectedTitle">Resolution Map</h2>
+              <span id="selectedSubtitle">Select an issue</span>
+            </div>
+            <div class="stage-pills" id="stagePills"></div>
+          </div>
+          <div class="map-wrap">
+            <svg id="resolutionMap" viewBox="0 0 920 390" role="img" aria-label="Issue resolution graph"></svg>
+          </div>
+          <div class="signal-strip" id="signalStrip"></div>
+        </section>
+
+        <aside class="control-panel framed-tool" aria-label="decision and acceptance controls">
+          <div class="panel-heading">
+            <div>
+              <h2>Decision Gate</h2>
+              <span id="detailOwner">No issue selected</span>
+            </div>
+            <span class="status-token" id="detailRisk">-</span>
+          </div>
+
+          <section class="detail-section">
+            <h3>ADR Ledger</h3>
+            <div class="decision-list" id="decisionList"></div>
+          </section>
+
+          <section class="detail-section">
+            <h3>Acceptance Gates</h3>
+            <div class="acceptance-list" id="acceptanceList"></div>
+          </section>
+
+          <section class="detail-section merge-summary">
+            <h3>Merge Contract</h3>
+            <dl id="mergeContract"></dl>
+          </section>
+        </aside>
+      </section>
+
+      <section class="merge-panel framed-tool" aria-label="merge train">
+        <div class="panel-heading">
+          <div>
+            <h2>Merge Train</h2>
+            <span>Parallel issue resolution</span>
+          </div>
+          <div class="train-key" aria-label="merge status key">
+            <span><i class="key-dot pass"></i>Pass</span>
+            <span><i class="key-dot wait"></i>Wait</span>
+            <span><i class="key-dot hold"></i>Hold</span>
+          </div>
+        </div>
+        <div class="train-grid" id="mergeTrain"></div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
