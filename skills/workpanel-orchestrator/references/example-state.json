@@ -1,0 +1,52 @@
+{
+  "issues": [
+    {
+      "id": "PAY-1842",
+      "title": "Checkout total drifts after coupon rollback",
+      "product": "billing-web",
+      "severity": "high",
+      "risk": "high",
+      "stage": "Review",
+      "agent": "codex-a17",
+      "branch": "fix/pay-1842-coupon-total",
+      "owner": "Mina",
+      "eta": "35m",
+      "merge": "wait",
+      "decisions": [
+        {
+          "id": "adr-1842-1",
+          "title": "Move coupon rollback into pricing reducer",
+          "context": "State mutation happens in both cart and payment views.",
+          "decision": "Normalize rollback in the reducer and keep UI as a pure renderer.",
+          "consequence": "Lower UI drift, requires reducer regression coverage.",
+          "status": "accepted"
+        },
+        {
+          "id": "adr-1842-2",
+          "title": "Reject view-level patch",
+          "context": "A view-only fix hides drift in one checkout route.",
+          "decision": "Do not patch the component total calculation.",
+          "consequence": "Slightly larger diff, better cross-route behavior.",
+          "status": "pending"
+        }
+      ],
+      "acceptance": [
+        {
+          "label": "Unit tests cover coupon add, remove, rollback",
+          "done": true,
+          "evidence": "pricing reducer unit suite passed"
+        },
+        {
+          "label": "Reviewer confirms ADR-1842-2",
+          "done": false
+        }
+      ],
+      "signals": {
+        "tests": "34/35",
+        "diff": "+86 -41",
+        "review": "1 wait",
+        "rollback": "low"
+      }
+    }
+  ]
+}
