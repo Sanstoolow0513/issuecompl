@@ -8,25 +8,51 @@
 
 核心愿景见 [temp.md](temp.md)。
 
-## 项目状态
+## 项目结构
 
-当前处于 **静态原型** 阶段：
-
-- 纯 HTML / CSS / JS，零构建依赖，浏览器直接打开即可使用。
-- 数据由 `workpanel/issues.json` 驱动，附带校验和同步脚本。
-- 运行时状态仅在内存中，刷新后重置。
-- Agent 集成通过 `skills/workpanel-orchestrator/` 的 skill 协议实现。
+```
+issuecompl/
+├── panel/                 # React 前端应用（Vite + React）
+│   ├── src/
+│   │   ├── App.jsx        # 主组件，组装五面板布局
+│   │   ├── main.jsx       # React 入口
+│   │   ├── index.css      # 全局样式
+│   │   ├── components/    # UI 组件
+│   │   │   ├── Topbar.jsx         # 指标 + 操作按钮
+│   │   │   ├── IssueQueue.jsx     # 左栏：筛选 / 排序 / issue 列表
+│   │   │   ├── IssueCard.jsx      # issue 卡片
+│   │   │   ├── MapPanel.jsx       # 中央：Resolution Map 容器
+│   │   │   ├── ResolutionMap.jsx  # SVG 流程图
+│   │   │   ├── SignalStrip.jsx    # 信号指标条
+│   │   │   ├── DecisionGate.jsx   # 右栏：ADR + 验收 + 合并
+│   │   │   ├── DecisionItem.jsx   # 单条 ADR 决策
+│   │   │   ├── AcceptanceList.jsx # 验收闸门列表
+│   │   │   ├── MergeContract.jsx  # 合并合约
+│   │   │   └── MergeTrain.jsx     # 底栏：合并队列
+│   │   ├── hooks/
+│   │   │   └── useIssues.js       # issue 状态管理 (useReducer)
+│   │   └── utils/
+│   │       └── issueHelpers.js    # 过滤、排序、计算等纯函数
+│   ├── index.html
+│   ├── package.json
+│   └── vite.config.js
+├── workpanel/
+│   └── issues.json        # Agent 可修改的 issue 状态源文件
+├── docs/                  # 文档和 ADR
+├── skills/                # Agent 编排协议
+└── temp.md                # 项目愿景
+```
 
 ## 架构
 
 ```
-用户 ──▶ index.html ──▶ app.js ──读取──▶ issues-data.js (globalThis.WORKPANEL_ISSUES)
-                                              ▲
-                                              │ sync_panel_data.py --out
-                                              │
-                                        issues.json  ◀── coding agent 修改
-                                              │
-                                              └── validate_state.py 校验
+panel/ (React)
+  └── App.jsx ── import ──▶ ../../workpanel/issues.json
+                                      ▲
+                                      │
+                                coding agent 修改
+                                      │
+                                      └── validate_state.py 校验
 ```
 
 issue 生命周期：**Intake → ADR → Patch → Checks → Review → Merge**
@@ -43,31 +69,28 @@ issue 生命周期：**Intake → ADR → Patch → Checks → Review → Merge*
 
 ## 运行
 
-浏览器直接打开 [index.html](index.html) 即可。
-
-如果修改了 `workpanel/issues.json`（issue 状态的源文件），需要依次运行校验和同步：
-
 ```bash
-# 校验 JSON 结构是否合法
-python3 skills/workpanel-orchestrator/scripts/validate_state.py workpanel/issues.json
-
-# 生成 issues-data.js 供静态页面加载
-python3 skills/workpanel-orchestrator/scripts/sync_panel_data.py workpanel/issues.json --out workpanel/issues-data.js
+cd panel
+npm install
+npm run dev
 ```
 
-`sync_panel_data.py` 还支持 `--app-js app.js` 模式（直接替换 app.js 中的 fixture），但当前架构推荐使用 `--out` 生成独立数据文件。
+如果修改了 `workpanel/issues.json`，可运行校验：
 
-## 文件
+```bash
+python3 skills/workpanel-orchestrator/scripts/validate_state.py workpanel/issues.json
+```
 
-| 文件 | 说明 |
-|---|---|
-| [index.html](index.html) | 应用结构，加载 CSS / 数据 / 逻辑 |
-| [styles.css](styles.css) | 可视化和响应式布局 |
-| [app.js](app.js) | 筛选、选择、ADR 状态和验收交互逻辑 |
-| [workpanel/issues.json](workpanel/issues.json) | Agent 可修改的 issue / ADR / acceptance 源状态 |
-| [workpanel/issues-data.js](workpanel/issues-data.js) | 由源状态生成的静态页面数据镜像 |
+生产构建：
 
-### Skill 和文档
+```bash
+cd panel
+npm run build
+```
+
+构建产物输出到 `panel/dist/`。
+
+## Skill 和文档
 
 | 文件 | 说明 |
 |---|---|
@@ -77,12 +100,12 @@ python3 skills/workpanel-orchestrator/scripts/sync_panel_data.py workpanel/issue
 | [docs/adr/0002-workpanel-state-source.md](docs/adr/0002-workpanel-state-source.md) | 状态源和静态数据镜像 ADR |
 | [docs/acceptance.md](docs/acceptance.md) | 验收清单 |
 
-### 工具脚本
+## 工具脚本
 
 | 文件 | 说明 |
 |---|---|
 | [scripts/validate_state.py](skills/workpanel-orchestrator/scripts/validate_state.py) | 校验 issues.json 结构、字段约束、合并一致性 |
-| [scripts/sync_panel_data.py](skills/workpanel-orchestrator/scripts/sync_panel_data.py) | 将 JSON 状态同步到 JS 数据文件或 app.js fixture |
+| [scripts/sync_panel_data.py](skills/workpanel-orchestrator/scripts/sync_panel_data.py) | 将 JSON 状态同步到 JS 数据文件（旧架构，React 版直接 import JSON） |
 
 ## 支持的 Agent
 
@@ -96,9 +119,9 @@ workpanel 通过 skill 协议接入，不绑定特定 agent。当前示例数据
 
 ## 验收重点
 
-1. 打开页面后可以同时看到 Issue Queue、Resolution Map、Decision Gate 和 Merge Train。
+1. `npm run dev` 后可以同时看到 Issue Queue、Resolution Map、Decision Gate 和 Merge Train。
 2. 选择不同 issue 时，中间流程图、右侧 ADR 和验收项同步变化。
 3. 点击 ADR 的 Approve 或 Revise 后，决策状态和顶部指标同步变化。
 4. 勾选验收项后，验收比例、详情和合并队列状态同步变化。
-5. 页面在桌面和移动视口下不依赖构建步骤即可使用。
+5. 页面在桌面和移动视口下均可正常使用。
 6. `validate_state.py` 能正确拒绝不合法的 JSON 状态。
