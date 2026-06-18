@@ -10,11 +10,15 @@ from pathlib import Path
 from typing import Any
 
 
-STAGES = {"Intake", "ADR", "Patch", "Checks", "Review", "Merge"}
+STAGES = {"Intake", "ADR", "Patch", "Checks", "Review", "Merge", "Recheck", "Done"}
 LEVELS = {"low", "medium", "high"}
 MERGE_STATES = {"wait", "hold", "pass"}
 DECISION_STATES = {"pending", "needs-revision", "accepted"}
 SIGNAL_KEYS = {"tests", "diff", "review", "rollback"}
+ISSUE_TYPES = {"bug", "feature"}
+
+BUG_PHASES = {"reproduce", "diagnose", "fix", "regression_test", "verify"}
+FEATURE_PHASES = {"discovery", "spec", "design", "implementation", "acceptance_test", "measure"}
 
 
 def load_issues(path: Path) -> list[dict[str, Any]]:
@@ -56,6 +60,17 @@ def validate_issue(issue: dict[str, Any], index: int) -> list[str]:
         errors.append(f"{prefix}.risk: must be one of {sorted(LEVELS)}")
     if issue.get("merge") not in MERGE_STATES:
         errors.append(f"{prefix}.merge: must be one of {sorted(MERGE_STATES)}")
+
+    issue_type = issue.get("type")
+    if issue_type is not None:
+        if issue_type not in ISSUE_TYPES:
+            errors.append(f"{prefix}.type: must be one of {sorted(ISSUE_TYPES)}")
+
+        phase = issue.get("phase")
+        if phase is not None:
+            valid_phases = BUG_PHASES if issue_type == "bug" else FEATURE_PHASES
+            if phase not in valid_phases:
+                errors.append(f"{prefix}.phase: must be one of {sorted(valid_phases)} for type {issue_type!r}")
 
     decisions = issue.get("decisions")
     if not isinstance(decisions, list) or not decisions:

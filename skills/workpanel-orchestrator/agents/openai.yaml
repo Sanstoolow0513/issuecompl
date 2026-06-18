@@ -1,4 +1,0 @@
-interface:
-  display_name: "Workpanel Orchestrator"
-  short_description: "ADR-gated issue orchestration"
-  default_prompt: "Use $workpanel-orchestrator to resolve an issue with ADR decisions, acceptance evidence, and panel status sync."

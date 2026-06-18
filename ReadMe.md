@@ -38,8 +38,24 @@ issuecompl/
 │   └── vite.config.js
 ├── workpanel/
 │   └── issues.json        # Agent 可修改的 issue 状态源文件
-├── docs/                  # 文档和 ADR
-├── skills/                # Agent 编排协议
+├── docs/                  # 文档、ADR 和共享协议
+│   ├── state-schema.md    # 共享状态模型
+│   ├── acceptance-policy.md # 共享验收策略
+│   └── adr/               # 项目级 ADR
+├── scripts/               # 项目级工具脚本
+│   ├── validate_state.py  # 校验 issues.json
+│   └── sync_panel_data.py # JSON → JS 同步
+├── skills/                # Agent 工作流 skill
+│   ├── bugflow/           # Bug 修复工作流
+│   │   ├── SKILL.md
+│   │   └── references/
+│   │       ├── intake-protocol.md
+│   │       └── workflow.md
+│   └── featflow/          # 特征开发工作流
+│       ├── SKILL.md
+│       └── references/
+│           ├── intake-protocol.md
+│           └── workflow.md
 └── temp.md                # 项目愿景
 ```
 
@@ -55,7 +71,11 @@ panel/ (React)
                                       └── validate_state.py 校验
 ```
 
-issue 生命周期：**Intake → ADR → Patch → Checks → Review → Merge**
+issue 生命周期：**Intake → ADR → Patch → Checks → Review → Merge → Recheck → Done**
+
+两种工作流：
+- **bugflow**：证明问题存在 → 定位根因 → 隔离修复 → 证明问题消失
+- **featflow**：多源信息采集 → 方案设计(human-in-loop) → 隔离实现 → 验收标准逐条过
 
 五个面板：
 
@@ -94,8 +114,10 @@ npm run build
 
 | 文件 | 说明 |
 |---|---|
-| [skills/workpanel-orchestrator/SKILL.md](skills/workpanel-orchestrator/SKILL.md) | Coding agent 使用的 workpanel 编排协议 |
-| [skills/workpanel-orchestrator/agents/openai.yaml](skills/workpanel-orchestrator/agents/openai.yaml) | OpenAI agent 接口声明 |
+| [skills/bugflow/SKILL.md](skills/bugflow/SKILL.md) | Bug 修复工作流 skill |
+| [skills/featflow/SKILL.md](skills/featflow/SKILL.md) | 特征开发工作流 skill |
+| [docs/state-schema.md](docs/state-schema.md) | 共享状态模型（type/phase/stage 枚举） |
+| [docs/acceptance-policy.md](docs/acceptance-policy.md) | 共享验收策略 |
 | [docs/adr/0001-workpanel-decision-acceptance.md](docs/adr/0001-workpanel-decision-acceptance.md) | 项目级 ADR：决策与验收优先的 workpanel |
 | [docs/adr/0002-workpanel-state-source.md](docs/adr/0002-workpanel-state-source.md) | 状态源和静态数据镜像 ADR |
 | [docs/acceptance.md](docs/acceptance.md) | 验收清单 |
@@ -104,8 +126,8 @@ npm run build
 
 | 文件 | 说明 |
 |---|---|
-| [scripts/validate_state.py](skills/workpanel-orchestrator/scripts/validate_state.py) | 校验 issues.json 结构、字段约束、合并一致性 |
-| [scripts/sync_panel_data.py](skills/workpanel-orchestrator/scripts/sync_panel_data.py) | 将 JSON 状态同步到 JS 数据文件（旧架构，React 版直接 import JSON） |
+| [scripts/validate_state.py](scripts/validate_state.py) | 校验 issues.json 结构、字段约束、合并一致性（支持 type/phase） |
+| [scripts/sync_panel_data.py](scripts/sync_panel_data.py) | 将 JSON 状态同步到 JS 数据文件（旧架构，React 版直接 import JSON） |
 
 ## 支持的 Agent
 
